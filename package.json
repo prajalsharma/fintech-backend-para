@@ -5,12 +5,14 @@
   "description": "Minimal fintech backend with Supabase Auth + Para REST API",
   "scripts": {
     "start": "node server.js",
-    "dev": "node --watch server.js"
+    "dev": "node --watch server.js",
+    "test": "node test.js"
   },
   "dependencies": {
     "express": "^4.21.0",
     "@supabase/auth-helpers-node": "^0.4.6",
     "ethers": "^6.11.1",
-    "dotenv": "^16.3.1"
+    "dotenv": "^16.3.1",
+    "node-fetch": "^3.3.2"
   }
 }
