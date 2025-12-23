@@ -25,8 +25,8 @@ const PARA_API_KEY = process.env.PARA_API_KEY;
 const PARA_BASE_URL = 'https://api.getpara.com/v2';
 const PARA_ENV = 'BETA';
 
-// Sepolia RPC
-const RPC_URL = 'https://sepolia.infura.io/v3/' + process.env.INFURA_KEY;
+// Sepolia RPC - use full Alchemy URL
+const RPC_URL = `https://eth-sepolia.g.alchemy.com/v2/${process.env.INFURA_KEY}`;
 const CHAIN_ID = 11155111;
 
 // Storage: in-memory wallet mapping (replace with DB in production)
