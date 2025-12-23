@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Para Fintech - Test UI</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #0f1419;
+      color: #e6edf3;
+      line-height: 1.6;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    header {
+      margin-bottom: 40px;
+    }
+
+    h1 {
+      font-size: 28px;
+      margin-bottom: 8px;
+      background: linear-gradient(135deg, #58a6ff, #79c0ff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .subtitle {
+      color: #8b949e;
+      font-size: 14px;
+    }
+
+    .status {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      margin-top: 10px;
+      background: #1c2128;
+      border: 1px solid #30363d;
+    }
+
+    .status.connected {
+      background: #0d3920;
+      border-color: #238636;
+      color: #3fb950;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 10px;
+      border-bottom: 1px solid #30363d;
+      margin-bottom: 30px;
+      overflow-x: auto;
+    }
+
+    .tab-btn {
+      padding: 12px 16px;
+      background: none;
+      border: none;
+      color: #8b949e;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      border-bottom: 2px solid transparent;
+      transition: all 0.2s;
+    }
+
+    .tab-btn.active {
+      color: #58a6ff;
+      border-bottom-color: #58a6ff;
+    }
+
+    .tab-btn:hover {
+      color: #79c0ff;
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    label {
+      font-size: 14px;
+      font-weight: 500;
+      color: #c9d1d9;
+    }
+
+    input,
+    textarea {
+      padding: 10px 12px;
+      background: #0d1117;
+      border: 1px solid #30363d;
+      color: #c9d1d9;
+      border-radius: 6px;
+      font-family: inherit;
+      font-size: 14px;
+      transition: all 0.2s;
+    }
+
+    input:focus,
+    textarea:focus {
+      outline: none;
+      border-color: #58a6ff;
+      box-shadow: 0 0 0 3px rgba(88, 166, 255, 0.1);
+    }
+
+    button {
+      padding: 10px 16px;
+      background: #238636;
+      color: #fff;
+      border: 1px solid #2ea043;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    button:hover {
+      background: #2ea043;
+    }
+
+    button:active {
+      transform: scale(0.98);
+    }
+
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .message {
+      padding: 12px 16px;
+      border-radius: 6px;
+      font-size: 14px;
+      margin-top: 12px;
+    }
+
+    .message.success {
+      background: #0d3920;
+      border: 1px solid #238636;
+      color: #3fb950;
+    }
+
+    .message.error {
+      background: #3d1f1a;
+      border: 1px solid #da3633;
+      color: #f85149;
+    }
+
+    .message.loading {
+      background: #1c2128;
+      border: 1px solid #30363d;
+      color: #8b949e;
+    }
+
+    .card {
+      background: #0d1117;
+      border: 1px solid #30363d;
+      border-radius: 6px;
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+
+    .card-label {
+      font-size: 12px;
+      color: #8b949e;
+      margin-bottom: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .card-value {
+      font-family: 'Courier New', monospace;
+      font-size: 14px;
+      color: #79c0ff;
+      word-break: break-all;
+    }
+
+    .button-group {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .button-group button {
+      flex: 1;
+      min-width: 120px;
+    }
+
+    .button-secondary {
+      background: transparent;
+      border-color: #30363d;
+      color: #58a6ff;
+    }
+
+    .button-secondary:hover {
+      background: #0d1117;
+      border-color: #58a6ff;
+    }
+
+    code {
+      background: #0d1117;
+      border: 1px solid #30363d;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+    }
+
+    .info {
+      background: #1c2128;
+      border: 1px solid #30363d;
+      border-radius: 6px;
+      padding: 12px;
+      font-size: 13px;
+      color: #8b949e;
+      margin-bottom: 16px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>💰 Para Fintech Test UI</h1>
+      <p class="subtitle">Minimal frontend to test the Para blockchain backend</p>
+      <div class="status connected">✓ API Ready</div>
+    </header>
+
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchTab('signup')">Signup</button>
+      <button class="tab-btn" onclick="switchTab('login')">Login</button>
+      <button class="tab-btn" onclick="switchTab('wallet')">Wallet</button>
+      <button class="tab-btn" onclick="switchTab('send')">Send ETH</button>
+    </div>
+
+    <!-- SIGNUP TAB -->
+    <div id="signup" class="tab-content active">
+      <h2>Create Account</h2>
+      <p class="subtitle" style="margin-bottom: 20px;">Sign up and automatically receive a Para wallet on Sepolia</p>
+      <form onsubmit="handleSignup(event)">
+        <div class="form-group">
+          <label for="signup-email">Email</label>
+          <input type="email" id="signup-email" required />
+        </div>
+        <div class="form-group">
+          <label for="signup-password">Password</label>
+          <input type="password" id="signup-password" required />
+        </div>
+        <button type="submit">Sign Up</button>
+        <div id="signup-message"></div>
+      </form>
+    </div>
+
+    <!-- LOGIN TAB -->
+    <div id="login" class="tab-content">
+      <h2>Login</h2>
+      <p class="subtitle" style="margin-bottom: 20px;">Sign in to access your wallet and send crypto</p>
+      <form onsubmit="handleLogin(event)">
+        <div class="form-group">
+          <label for="login-email">Email</label>
+          <input type="email" id="login-email" required />
+        </div>
+        <div class="form-group">
+          <label for="login-password">Password</label>
+          <input type="password" id="login-password" required />
+        </div>
+        <button type="submit">Login</button>
+        <div id="login-message"></div>
+      </form>
+    </div>
+
+    <!-- WALLET TAB -->
+    <div id="wallet" class="tab-content">
+      <h2>Wallet</h2>
+      <p class="subtitle" style="margin-bottom: 20px;">View your Para wallet address and Sepolia balance</p>
+      <div class="info">ℹ️ You must be logged in to view wallet. Use the Login tab first.</div>
+      <button onclick="handleFetchWallet()" style="margin-bottom: 20px;">Fetch Wallet Details</button>
+      <div id="wallet-message"></div>
+      <div id="wallet-display"></div>
+    </div>
+
+    <!-- SEND TAB -->
+    <div id="send" class="tab-content">
+      <h2>Send Sepolia ETH</h2>
+      <p class="subtitle" style="margin-bottom: 20px;">Transfer ETH from your Para wallet to another address</p>
+      <div class="info">ℹ️ You need funds in your wallet. Get Sepolia ETH from a faucet first.</div>
+      <form onsubmit="handleSend(event)">
+        <div class="form-group">
+          <label for="send-to">Recipient Address</label>
+          <input type="text" id="send-to" placeholder="0x..." required />
+        </div>
+        <div class="form-group">
+          <label for="send-amount">Amount (ETH)</label>
+          <input type="number" id="send-amount" step="0.001" placeholder="0.1" required />
+        </div>
+        <button type="submit">Send</button>
+        <div id="send-message"></div>
+      </form>
+      <div id="send-display"></div>
+    </div>
+  </div>
+
+  <script>
+    const API_URL = window.location.origin;
+    let currentToken = null;
+
+    function switchTab(tabName) {
+      document.querySelectorAll('.tab-content').forEach((t) => t.classList.remove('active'));
+      document.querySelectorAll('.tab-btn').forEach((b) => b.classList.remove('active'));
+      document.getElementById(tabName).classList.add('active');
+      event.target.classList.add('active');
+    }
+
+    function showMessage(elementId, text, type = 'success') {
+      const el = document.getElementById(elementId);
+      el.innerHTML = `<div class="message ${type}">${escapeHtml(text)}</div>`;
+    }
+
+    function clearMessage(elementId) {
+      document.getElementById(elementId).innerHTML = '';
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    async function handleSignup(e) {
+      e.preventDefault();
+      const email = document.getElementById('signup-email').value;
+      const password = document.getElementById('signup-password').value;
+
+      showMessage('signup-message', 'Creating account and wallet...', 'loading');
+
+      try {
+        const res = await fetch(`${API_URL}/signup`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password }),
+        });
+
+        if (!res.ok) {
+          const err = await res.json();
+          throw new Error(err.error || 'Signup failed');
+        }
+
+        const data = await res.json();
+        showMessage(
+          'signup-message',
+          `✓ Account created! Wallet: ${data.wallet_address.slice(0, 10)}...`,
+          'success'
+        );
+        document.getElementById('signup-email').value = '';
+        document.getElementById('signup-password').value = '';
+      } catch (err) {
+        showMessage('signup-message', err.message, 'error');
+      }
+    }
+
+    async function handleLogin(e) {
+      e.preventDefault();
+      const email = document.getElementById('login-email').value;
+      const password = document.getElementById('login-password').value;
+
+      showMessage('login-message', 'Logging in...', 'loading');
+
+      try {
+        const res = await fetch(`${API_URL}/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password }),
+        });
+
+        if (!res.ok) {
+          const err = await res.json();
+          throw new Error(err.error || 'Login failed');
+        }
+
+        const data = await res.json();
+        currentToken = data.access_token;
+        showMessage('login-message', `✓ Logged in as ${email}`, 'success');
+        document.getElementById('login-email').value = '';
+        document.getElementById('login-password').value = '';
+      } catch (err) {
+        showMessage('login-message', err.message, 'error');
+      }
+    }
+
+    async function handleFetchWallet() {
+      if (!currentToken) {
+        showMessage('wallet-message', 'Please login first', 'error');
+        return;
+      }
+
+      document.getElementById('wallet-display').innerHTML = '';
+      showMessage('wallet-message', 'Fetching wallet...', 'loading');
+
+      try {
+        const res = await fetch(`${API_URL}/wallet`, {
+          headers: { Authorization: `Bearer ${currentToken}` },
+        });
+
+        if (!res.ok) {
+          const err = await res.json();
+          throw new Error(err.error || 'Failed to fetch wallet');
+        }
+
+        const data = await res.json();
+        clearMessage('wallet-message');
+        document.getElementById('wallet-display').innerHTML = `
+          <div class="card">
+            <div class="card-label">Wallet Address</div>
+            <div class="card-value">${data.address}</div>
+          </div>
+          <div class="card">
+            <div class="card-label">Sepolia Balance</div>
+            <div class="card-value">${data.balance_eth} ETH</div>
+          </div>
+          <div class="info">
+            💡 Need funds? Get Sepolia ETH from: <a href="https://www.sepoliafaucet.com" target="_blank" style="color: #58a6ff;">sepoliafaucet.com</a>
+          </div>
+        `;
+      } catch (err) {
+        showMessage('wallet-message', err.message, 'error');
+      }
+    }
+
+    async function handleSend(e) {
+      e.preventDefault();
+      if (!currentToken) {
+        showMessage('send-message', 'Please login first', 'error');
+        return;
+      }
+
+      const to = document.getElementById('send-to').value;
+      const amount = document.getElementById('send-amount').value;
+
+      document.getElementById('send-display').innerHTML = '';
+      showMessage('send-message', 'Broadcasting transaction...', 'loading');
+
+      try {
+        const res = await fetch(`${API_URL}/send`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${currentToken}`,
+          },
+          body: JSON.stringify({ to, amount }),
+        });
+
+        if (!res.ok) {
+          const err = await res.json();
+          throw new Error(err.error || 'Transaction failed');
+        }
+
+        const data = await res.json();
+        clearMessage('send-message');
+        document.getElementById('send-display').innerHTML = `
+          <div class="card" style="border-color: #238636; background: #0d3920;">
+            <div class="card-label">✓ Transaction Sent!</div>
+            <div style="margin-top: 12px;">
+              <div class="card-label">TX Hash</div>
+              <div class="card-value">${data.transaction_hash}</div>
+            </div>
+            <div style="margin-top: 12px;">
+              <div class="card-label">From</div>
+              <div class="card-value" style="font-size: 12px;">${data.from}</div>
+            </div>
+            <div style="margin-top: 12px;">
+              <div class="card-label">To</div>
+              <div class="card-value" style="font-size: 12px;">${data.to}</div>
+            </div>
+            <div style="margin-top: 12px;">
+              <div class="card-label">Amount</div>
+              <div class="card-value">${data.amount} ETH</div>
+            </div>
+          </div>
+          <div class="info">
+            💡 View on Etherscan: <a href="https://sepolia.etherscan.io/tx/${data.transaction_hash}" target="_blank" style="color: #58a6ff;">sepolia.etherscan.io</a>
+          </div>
+        `;
+        document.getElementById('send-to').value = '';
+        document.getElementById('send-amount').value = '';
+      } catch (err) {
+        showMessage('send-message', err.message, 'error');
+      }
+    }
+  </script>
+</body>
+</html>
