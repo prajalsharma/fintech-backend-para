@@ -363,7 +363,7 @@
       showMessage('signup-message', 'Creating account and wallet...', 'loading');
 
       try {
-        const res = await fetch(`${API_URL}/signup`, {
+        const res = await fetch(`${API_URL}/api/signup`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email, password }),
@@ -395,7 +395,7 @@
       showMessage('login-message', 'Logging in...', 'loading');
 
       try {
-        const res = await fetch(`${API_URL}/login`, {
+        const res = await fetch(`${API_URL}/api/login`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email, password }),
@@ -426,7 +426,7 @@
       showMessage('wallet-message', 'Fetching wallet...', 'loading');
 
       try {
-        const res = await fetch(`${API_URL}/wallet`, {
+        const res = await fetch(`${API_URL}/api/wallet`, {
           headers: { Authorization: `Bearer ${currentToken}` },
         });
 
@@ -469,7 +469,7 @@
       showMessage('send-message', 'Broadcasting transaction...', 'loading');
 
       try {
-        const res = await fetch(`${API_URL}/send`, {
+        const res = await fetch(`${API_URL}/api/send`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
