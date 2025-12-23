@@ -102,6 +102,23 @@ async function verifyToken(token) {
 
 // ============= ROUTES =============
 
+// Health check / API info
+app.get('/', (req, res) => {
+  res.json({
+    status: '✅ OK',
+    service: 'Fintech Backend (Supabase + Para)',
+    version: '1.0.0',
+    endpoints: {
+      'POST /signup': 'Create user + auto-create wallet',
+      'POST /login': 'Authenticate user, return JWT',
+      'GET /wallet': 'Fetch wallet address + balance (requires Bearer token)',
+      'POST /send': 'Build, sign, broadcast Sepolia transaction (requires Bearer token)',
+    },
+    docs: 'https://github.com/prajalsharma/fintech-backend-para',
+    timestamp: new Date().toISOString(),
+  });
+});
+
 app.post('/signup', async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -260,9 +277,20 @@ app.post('/send', async (req, res) => {
   }
 });
 
+// 404 handler
+app.use((req, res) => {
+  res.status(404).json({
+    error: 'Not found',
+    path: req.path,
+    method: req.method,
+    hint: 'Check available endpoints at GET /',
+  });
+});
+
 // ============= SERVER =============
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
+  console.log(`\n✅ Server running on http://localhost:${PORT}`);
+  console.log(`📖 API Documentation at http://localhost:${PORT}/\n`);
 });
