@@ -2,11 +2,18 @@ import express from 'express';
 import { createClient } from '@supabase/supabase-js';
 import { ethers } from 'ethers';
 import dotenv from 'dotenv';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
 dotenv.config();
 
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
 const app = express();
 app.use(express.json());
+
+// Serve static files from public directory
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Supabase client
 const supabase = createClient(
@@ -103,7 +110,7 @@ async function verifyToken(token) {
 // ============= ROUTES =============
 
 // Health check / API info
-app.get('/', (req, res) => {
+app.get('/api', (req, res) => {
   res.json({
     status: '✅ OK',
     service: 'Fintech Backend (Supabase + Para)',
@@ -114,6 +121,7 @@ app.get('/', (req, res) => {
       'GET /wallet': 'Fetch wallet address + balance (requires Bearer token)',
       'POST /send': 'Build, sign, broadcast Sepolia transaction (requires Bearer token)',
     },
+    ui: 'Open browser to http://localhost:3000 to use the frontend',
     docs: 'https://github.com/prajalsharma/fintech-backend-para',
     timestamp: new Date().toISOString(),
   });
@@ -277,13 +285,13 @@ app.post('/send', async (req, res) => {
   }
 });
 
-// 404 handler
-app.use((req, res) => {
+// 404 handler for API (JSON)
+app.use('/api', (req, res) => {
   res.status(404).json({
     error: 'Not found',
     path: req.path,
     method: req.method,
-    hint: 'Check available endpoints at GET /',
+    hint: 'Check available endpoints at GET /api',
   });
 });
 
@@ -292,5 +300,6 @@ app.use((req, res) => {
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`\n✅ Server running on http://localhost:${PORT}`);
-  console.log(`📖 API Documentation at http://localhost:${PORT}/\n`);
+  console.log(`🌐 UI available at http://localhost:${PORT}`);
+  console.log(`📖 API Documentation at http://localhost:${PORT}/api\n`);
 });
