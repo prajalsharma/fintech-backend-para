@@ -1,224 +1,309 @@
 # Fintech Backend: Supabase Auth + Para REST API
 
-A minimal but working backend for crypto wallet management using Supabase for authentication and Para REST API for wallet operations on Sepolia testnet.
+A minimal but working backend for crypto wallet management using Supabase for authentication and Para REST API for wallet operations on Sepolia testnet. Includes a built-in test UI for easy interaction.
 
-## 🚀 Quick Links
+## 🚀 Quick Start
 
-- **[Testing Guide](./TESTING.md)** - How to test the backend locally
-- **[Deployment Guide](./DEPLOYMENT.md)** - Deploy to Vercel with environment variables
-- **[GitHub Repo](https://github.com/prajalsharma/fintech-backend-para)** - Source code
+```bash
+# Clone and install
+git clone https://github.com/prajalsharma/fintech-backend-para.git
+cd fintech-backend-para
+npm install
 
-## Architecture
+# Set up environment (fill in your credentials)
+cp .env.example .env
 
-```
-Client
-  ↓
-Express Server
-  ├─ Supabase Auth (signup/login)
-  ├─ Para REST API (wallet creation/signing)
-  └─ ethers v6 (RPC interactions)
-  ↓
-Sepolia Testnet
+# Start server with frontend UI
+npm start
+
+# Open http://localhost:3000 in your browser
 ```
 
-## Core Features
+## 🔗 Quick Links
 
-- **Sign Up**: Register with email/password → automatically creates Para EVM wallet
-- **Login**: Authenticate with Supabase → get JWT token
-- **View Wallet**: Fetch wallet address + Sepolia ETH balance
-- **Send Transaction**: Build, sign with Para, and broadcast Sepolia ETH
+- **[Frontend Guide](./FRONTEND.md)** - Using the built-in test UI
+- **[API Testing Guide](./TESTING.md)** - Testing endpoints with curl/Hoppscotch
+- **[Deployment Guide](./DEPLOYMENT.md)** - Deploy to Vercel
 
-## API Routes
+## 📦 What's Included
+
+✅ **Backend API** - Express.js with 4 core endpoints
+✅ **Frontend UI** - Vanilla HTML + JS (no dependencies)
+✅ **Supabase Auth** - Email/password authentication
+✅ **Para Wallets** - Auto-create EVM wallet on signup
+✅ **Sepolia Transactions** - Sign and broadcast transactions
+✅ **Testing Suite** - Automated endpoint tests
+
+## 🎯 Core Features
+
+### Signup
+- Email + password → user account + Para wallet
+- Wallet address returned immediately
+
+### Login
+- Email + password → JWT token
+- Token required for wallet operations
+
+### View Wallet
+- Display wallet address
+- Show Sepolia ETH balance (updated in real-time)
+
+### Send Transaction
+- Recipient address + amount → broadcast transaction
+- Signs with Para, broadcasts to Sepolia
+- Returns transaction hash for verification
+
+## 🏗️ Architecture
+
+```
+┌─────────────────────────┐
+│   Frontend (HTML + JS)  │
+│   http://localhost:3000 │
+└────────────┬────────────┘
+             │
+             ↓
+┌─────────────────────────┐
+│  Express.js Backend     │
+│  /signup /login         │
+│  /wallet /send          │
+└────────┬──────────┬─────┘
+         │          │
+    ┌────▼──┐   ┌──▼────────┐
+    │        │   │           │
+  Supabase Para Alchemy RPC
+    Auth   Wallets (Sepolia)
+```
+
+## 📚 API Routes
 
 ### POST /signup
-Create a new user and wallet.
+Create user + wallet
 
 **Request:**
-```json
-{
-  "email": "user@example.com",
-  "password": "secure_password"
-}
+```bash
+curl -X POST http://localhost:3000/signup \
+  -H "Content-Type: application/json" \
+  -d '{"email":"user@example.com","password":"secure123"}'
 ```
 
 **Response:**
 ```json
 {
-  "user_id": "uuid",
+  "user_id": "550e8400-e29b-41d4-a716-446655440000",
   "email": "user@example.com",
-  "wallet_address": "0x..."
+  "wallet_address": "0x1234567890abcdef..."
 }
 ```
 
 ### POST /login
-Authenticate user and return JWT.
+Authenticate user
 
 **Request:**
-```json
-{
-  "email": "user@example.com",
-  "password": "secure_password"
-}
+```bash
+curl -X POST http://localhost:3000/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"user@example.com","password":"secure123"}'
 ```
 
 **Response:**
 ```json
 {
-  "user_id": "uuid",
+  "user_id": "550e8400-e29b-41d4-a716-446655440000",
   "email": "user@example.com",
-  "access_token": "jwt_token"
+  "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
 }
 ```
 
 ### GET /wallet
-Fetch authenticated user's wallet address and balance.
+Fetch wallet + balance (requires auth)
 
-**Headers:**
-```
-Authorization: Bearer <access_token>
+**Request:**
+```bash
+curl -X GET http://localhost:3000/wallet \
+  -H "Authorization: Bearer <access_token>"
 ```
 
 **Response:**
 ```json
 {
-  "address": "0x...",
+  "address": "0x1234567890abcdef...",
   "balance_eth": "1.5"
 }
 ```
 
 ### POST /send
-Build, sign, and broadcast a Sepolia transaction.
-
-**Headers:**
-```
-Authorization: Bearer <access_token>
-```
+Broadcast transaction (requires auth + funds)
 
 **Request:**
-```json
-{
-  "to": "0x...",
-  "amount": "0.1"
-}
+```bash
+curl -X POST http://localhost:3000/send \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer <access_token>" \
+  -d '{"to":"0x1234567890abcdef...","amount":"0.1"}'
 ```
 
 **Response:**
 ```json
 {
-  "transaction_hash": "0x...",
-  "from": "0x...",
-  "to": "0x...",
+  "transaction_hash": "0xabcd1234...",
+  "from": "0x1234567890abcdef...",
+  "to": "0x1234567890abcdef...",
   "amount": "0.1"
 }
 ```
 
-## Setup
+## ⚙️ Setup
 
-### 1. Prerequisites
+### Prerequisites
+- Node.js 18+
+- [Supabase](https://supabase.com) account (free)
+- [Para API](https://getpara.com) key (free tier available)
+- [Alchemy](https://www.alchemy.com) API key for Sepolia RPC
 
-- Node.js v18+
-- Supabase account (free tier works)
-- Para API key (sign up at [getpara.com](https://getpara.com))
-- Alchemy API key for Sepolia RPC
+### Environment Variables
 
-### 2. Clone & Install
-
-```bash
-git clone https://github.com/prajalsharma/fintech-backend-para.git
-cd fintech-backend-para
-npm install
-```
-
-### 3. Environment Setup
-
-Copy `.env.example` to `.env` and fill in your credentials:
+Copy `.env.example` to `.env`:
 
 ```bash
 cp .env.example .env
 ```
 
-**Required env vars:**
-- `SUPABASE_URL`: Your Supabase project URL
-- `SUPABASE_ANON_KEY`: Your Supabase anonymous key
-- `PARA_API_KEY`: Your Para REST API key
-- `INFURA_KEY`: Your Alchemy API key for Sepolia
-- `PORT`: (optional, defaults to 3000)
+Fill in your credentials:
 
-### 4. Run
+```env
+# Supabase (from your project settings)
+SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_ANON_KEY=your_anon_key_here
+
+# Para API (from https://getpara.com)
+PARA_API_KEY=your_para_api_key_here
+
+# Alchemy (from https://www.alchemy.com)
+INFURA_KEY=your_alchemy_key_here
+
+# Server port (optional)
+PORT=3000
+```
+
+### Install & Run
 
 ```bash
+# Install dependencies
+npm install
+
+# Start server
 npm start
-```
 
-Server starts on `http://localhost:3000`.
-
-**Development mode with auto-reload:**
-```bash
+# Development mode (with auto-reload)
 npm run dev
+
+# Run tests
+node test.js
 ```
 
-## Testing the API
+## 🧪 Testing
 
-Use Hoppscotch, Postman, or curl. See [TESTING.md](./TESTING.md) for detailed examples.
+### Using the Frontend UI
 
-### Quick Test
+1. Open http://localhost:3000
+2. Switch between tabs: Signup, Login, Wallet, Send
+3. Follow the flow:
+   - Signup → get wallet address
+   - Login → store JWT token
+   - Fetch Wallet → see balance
+   - Fund from faucet → get Sepolia ETH
+   - Send → broadcast transaction
+
+### Using API Directly
+
+See [TESTING.md](./TESTING.md) for detailed curl/Hoppscotch examples.
+
+### Automated Tests
 
 ```bash
-# Signup
-curl -X POST http://localhost:3000/signup \
-  -H "Content-Type: application/json" \
-  -d '{"email":"test@example.com","password":"Test1234!"}'
-
-# Run automated tests
-npm test
+node test.js
 ```
 
-## Deployment
+Runs through signup → login → wallet → send flow with real API calls.
+
+## 🚀 Deployment
 
 ### Deploy to Vercel
 
 1. Push code to GitHub
-2. Go to [vercel.com](https://vercel.com)
-3. Import `fintech-backend-para` repository
-4. Add 4 environment variables (see [DEPLOYMENT.md](./DEPLOYMENT.md))
+2. Go to [vercel.com](https://vercel.com) → Import Project
+3. Select `fintech-backend-para`
+4. Add 4 environment variables
 5. Deploy!
 
-**Environment Variables for Vercel:**
-- `SUPABASE_URL`
-- `SUPABASE_ANON_KEY`
-- `PARA_API_KEY` (SECRET)
-- `INFURA_KEY` (SECRET)
+See [DEPLOYMENT.md](./DEPLOYMENT.md) for detailed steps.
 
-For detailed instructions, see [DEPLOYMENT.md](./DEPLOYMENT.md).
+## 📁 File Structure
 
-## How It Works
+```
+fintech-backend-para/
+├── public/
+│   └── index.html           ← Frontend UI (served automatically)
+├── server.js                ← Express backend (updated with static serving)
+├── test.js                  ← Automated tests
+├── package.json
+├── .env                     ← Your environment variables
+├── .env.example             ← Template
+├── README.md                ← This file
+├── FRONTEND.md              ← Frontend guide
+├── TESTING.md               ← API testing guide
+├── DEPLOYMENT.md            ← Deployment instructions
+└── TROUBLESHOOTING.md       ← Common issues
+```
+
+## 🔑 How It Works
 
 ### Signup Flow
-1. User registers with email/password
-2. Supabase creates user account
-3. Backend calls Para `POST /wallets` with `chain: 'evm'`
-4. Backend polls wallet status until `ready`
-5. Wallet address is returned to client
+
+```
+User fills form
+    ↓
+Frontend: POST /signup (email, password)
+    ↓
+Backend: Create Supabase user
+    ↓
+Backend: Call Para API to create wallet
+    ↓
+Backend: Poll wallet until ready
+    ↓
+Backend: Return wallet address
+    ↓
+Frontend: Show success + wallet address
+```
 
 ### Send Transaction Flow
-1. Build EIP-1559 transaction with ethers v6
-2. Hash unsigned transaction
-3. Call Para `POST /wallets/{id}/sign-raw` with txHash
-4. Para returns signature
-5. Attach signature to transaction and serialize
-6. Broadcast to Sepolia RPC
 
-### Storage
+```
+User enters recipient + amount
+    ↓
+Frontend: POST /send (to, amount, Bearer token)
+    ↓
+Backend: Verify JWT token
+    ↓
+Backend: Build EIP-1559 transaction
+    ↓
+Backend: Call Para to sign transaction
+    ↓
+Backend: Broadcast signed transaction to Sepolia
+    ↓
+Backend: Return transaction hash
+    ↓
+Frontend: Show tx hash + Etherscan link
+```
 
-**Current:** In-memory mapping of Supabase user ID → Para wallet ID
+## 💾 Storage
 
-**Production:** Replace with database (PostgreSQL, MongoDB, etc.)
+**Current:** In-memory wallet mapping (dev/testing only)
+
+**Production:** Use database to persist wallet IDs:
 
 ```javascript
-// Current (in-memory)
-const walletMap = {}; // supabase_user_id -> para_wallet_id
-
-// Suggested: Use Supabase profiles table
+// Example: Supabase profiles table
 const { data } = await supabase
   .from('profiles')
   .select('para_wallet_id')
@@ -226,37 +311,48 @@ const { data } = await supabase
   .single();
 ```
 
-## Key Design Decisions
+## 🤔 Design Decisions
 
-1. **Minimal Dependencies**: Only express, ethers, supabase auth, dotenv
-2. **Single Wallet Per User**: One wallet created on signup, reused for all transactions
-3. **Server-Side Secrets**: Para API key never sent to client
-4. **Polling for Wallet Ready**: Para wallets take ~1-2 seconds to initialize
-5. **In-Memory Storage**: Works for MVP; replace with persistent DB for production
-6. **Sepolia Testnet**: Use faucets for testing ETH
+1. **Minimal Frontend**: HTML + vanilla JS = zero build step, easy to modify
+2. **One Wallet Per User**: Simpler than managing multiple wallets
+3. **Server-Side Secrets**: Para key never exposed to client
+4. **Polling for Wallet**: Para wallets need ~1-2 seconds to initialize
+5. **Sepolia Testnet**: Perfect for development and testing
+6. **EIP-1559 Transactions**: Modern gas pricing for better UX
 
-## Troubleshooting
+## 🐛 Troubleshooting
 
-### "Para API error: Invalid API key"
-Check `PARA_API_KEY` in `.env`
+### Frontend won't load
+- Check server is running: `http://localhost:3000`
+- Check console (F12) for errors
+- Verify port 3000 is free or change PORT in .env
 
-### "Wallet creation timeout"
-Wallet may be in slow initialization. Increase timeout or check Para dashboard.
-
-### "Invalid token"
-Token expired or malformed. Re-login to get fresh token.
+### Signup fails
+- Check Supabase credentials in .env
+- Verify PARA_API_KEY is correct
+- Check server logs for Para error message
 
 ### Transaction broadcast fails
-Likely insufficient gas or wrong RPC. Check Sepolia status and wallet balance.
+- Insufficient balance? Use Sepolia faucet
+- Wrong address format? Must start with 0x
+- Gas too low? Backend handles gas automatically
 
-## References
+See [TROUBLESHOOTING.md](./TROUBLESHOOTING.md) for more issues.
 
-- [Para REST Docs](https://docs.getpara.com/v2/rest/overview)
-- [Para Wallets](https://docs.getpara.com/v2/rest/guides/wallets)
-- [Para Signing](https://docs.getpara.com/v2/rest/guides/signing)
+## 📖 References
+
+- [Para REST API Docs](https://docs.getpara.com/v2/rest)
+- [Para Wallets Guide](https://docs.getpara.com/v2/rest/guides/wallets)
+- [Para Signing Guide](https://docs.getpara.com/v2/rest/guides/signing)
 - [Supabase Auth](https://supabase.com/docs/guides/auth)
-- [ethers v6](https://docs.ethers.org/v6/)
+- [ethers.js v6](https://docs.ethers.org/v6/)
+- [Sepolia Faucet](https://www.sepoliafaucet.com)
+- [Sepolia Explorer](https://sepolia.etherscan.io)
 
-## License
+## 📝 License
 
 MIT
+
+---
+
+**Built with ❤️ using Supabase, Para, and ethers.js**
