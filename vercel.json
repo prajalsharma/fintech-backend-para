@@ -1,0 +1,14 @@
+{
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "/api/handler.js"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/api/handler.js"
+    }
+  ],
+  "buildCommand": "npm install",
+  "devCommand": "node server.js"
+}
