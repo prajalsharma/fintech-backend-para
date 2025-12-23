@@ -15,11 +15,24 @@ app.use(express.json());
 // Serve static files from public directory
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Supabase client (server-side only)
-const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_KEY // Use SERVICE KEY for admin operations
-);
+// Lazy-load Supabase client
+let supabase = null;
+
+function getSupabaseClient() {
+  if (!supabase) {
+    const url = process.env.SUPABASE_URL;
+    const key = process.env.SUPABASE_SERVICE_KEY;
+
+    if (!url || !key) {
+      throw new Error(
+        `Missing Supabase credentials. Set SUPABASE_URL and SUPABASE_SERVICE_KEY in environment variables.`
+      );
+    }
+
+    supabase = createClient(url, key);
+  }
+  return supabase;
+}
 
 // Para REST API configuration
 const PARA_API_KEY = process.env.PARA_API_KEY;
@@ -35,6 +48,10 @@ const walletMap = {};
 // ============= HELPERS =============
 
 async function paraRequest(method, endpoint, body = null) {
+  if (!PARA_API_KEY) {
+    throw new Error('PARA_API_KEY not set in environment');
+  }
+
   const url = `${PARA_BASE_URL}${endpoint}`;
   const headers = {
     'X-API-Key': PARA_API_KEY,
@@ -96,13 +113,15 @@ async function getWalletBalance(address) {
 // Verify Supabase JWT token
 async function verifyToken(token) {
   try {
+    const client = getSupabaseClient();
     const {
       data: { user },
       error,
-    } = await supabase.auth.getUser(token);
+    } = await client.auth.getUser(token);
     if (error || !user) return null;
     return user.id;
   } catch (err) {
+    console.error('Token verification error:', err.message);
     return null;
   }
 }
@@ -132,8 +151,8 @@ app.post('/signup', async (req, res) => {
       return res.status(400).json({ error: 'Email and password required' });
     }
 
-    // ✅ CORRECT: Use admin.createUser (backend only)
-    const { data, error } = await supabase.auth.admin.createUser({
+    const client = getSupabaseClient();
+    const { data, error } = await client.auth.admin.createUser({
       email,
       password,
       email_confirm: true,
@@ -145,15 +164,24 @@ app.post('/signup', async (req, res) => {
 
     const userId = data.user.id;
 
-    // Create Para wallet
-    const walletId = await createParaWallet(userId, email);
-    const address = await getWalletAddress(walletId);
+    try {
+      const walletId = await createParaWallet(userId, email);
+      const address = await getWalletAddress(walletId);
 
-    res.json({
-      user_id: userId,
-      email: data.user.email,
-      wallet_address: address,
-    });
+      res.json({
+        user_id: userId,
+        email: data.user.email,
+        wallet_address: address,
+      });
+    } catch (walletErr) {
+      console.error('Wallet creation error:', walletErr.message);
+      res.status(200).json({
+        user_id: userId,
+        email: data.user.email,
+        wallet_address: null,
+        warning: 'User created but wallet creation failed',
+      });
+    }
   } catch (err) {
     console.error('Signup error:', err.message);
     res.status(500).json({ error: err.message });
@@ -167,8 +195,8 @@ app.post('/login', async (req, res) => {
       return res.status(400).json({ error: 'Email and password required' });
     }
 
-    // ✅ CORRECT: signInWithPassword (Supabase v2 method)
-    const { data, error } = await supabase.auth.signInWithPassword({
+    const client = getSupabaseClient();
+    const { data, error } = await client.auth.signInWithPassword({
       email,
       password,
     });
