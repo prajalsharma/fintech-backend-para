@@ -2,6 +2,12 @@
 
 A minimal but working backend for crypto wallet management using Supabase for authentication and Para REST API for wallet operations on Sepolia testnet.
 
+## 🚀 Quick Links
+
+- **[Testing Guide](./TESTING.md)** - How to test the backend locally
+- **[Deployment Guide](./DEPLOYMENT.md)** - Deploy to Vercel with environment variables
+- **[GitHub Repo](https://github.com/prajalsharma/fintech-backend-para)** - Source code
+
 ## Architecture
 
 ```
@@ -113,7 +119,7 @@ Authorization: Bearer <access_token>
 - Node.js v18+
 - Supabase account (free tier works)
 - Para API key (sign up at [getpara.com](https://getpara.com))
-- Infura API key for Sepolia RPC
+- Alchemy API key for Sepolia RPC
 
 ### 2. Clone & Install
 
@@ -135,7 +141,7 @@ cp .env.example .env
 - `SUPABASE_URL`: Your Supabase project URL
 - `SUPABASE_ANON_KEY`: Your Supabase anonymous key
 - `PARA_API_KEY`: Your Para REST API key
-- `INFURA_KEY`: Your Infura API key for Sepolia
+- `INFURA_KEY`: Your Alchemy API key for Sepolia
 - `PORT`: (optional, defaults to 3000)
 
 ### 4. Run
@@ -153,45 +159,37 @@ npm run dev
 
 ## Testing the API
 
-Use Hoppscotch, Postman, or curl.
+Use Hoppscotch, Postman, or curl. See [TESTING.md](./TESTING.md) for detailed examples.
 
-### 1. Sign Up
+### Quick Test
 
 ```bash
+# Signup
 curl -X POST http://localhost:3000/signup \
   -H "Content-Type: application/json" \
   -d '{"email":"test@example.com","password":"Test1234!"}'
+
+# Run automated tests
+npm test
 ```
 
-Note the `wallet_address` from response.
+## Deployment
 
-### 2. Login
+### Deploy to Vercel
 
-```bash
-curl -X POST http://localhost:3000/login \
-  -H "Content-Type: application/json" \
-  -d '{"email":"test@example.com","password":"Test1234!"}'
-```
+1. Push code to GitHub
+2. Go to [vercel.com](https://vercel.com)
+3. Import `fintech-backend-para` repository
+4. Add 4 environment variables (see [DEPLOYMENT.md](./DEPLOYMENT.md))
+5. Deploy!
 
-Save the `access_token`.
+**Environment Variables for Vercel:**
+- `SUPABASE_URL`
+- `SUPABASE_ANON_KEY`
+- `PARA_API_KEY` (SECRET)
+- `INFURA_KEY` (SECRET)
 
-### 3. View Wallet
-
-```bash
-curl -X GET http://localhost:3000/wallet \
-  -H "Authorization: Bearer <access_token>"
-```
-
-### 4. Send Transaction
-
-First, fund the wallet with Sepolia ETH using a [faucet](https://sepolia-faucet.pk910.de/).
-
-```bash
-curl -X POST http://localhost:3000/send \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer <access_token>" \
-  -d '{"to":"0x742d35Cc6634C0532925a3b844Bc9e7595f42e2e","amount":"0.01"}'
-```
+For detailed instructions, see [DEPLOYMENT.md](./DEPLOYMENT.md).
 
 ## How It Works
 
