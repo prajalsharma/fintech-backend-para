@@ -21,10 +21,10 @@ const supabase = createClient(
   process.env.SUPABASE_ANON_KEY
 );
 
-// Para REST client
+// Para REST API configuration
+// Based on: https://docs.getpara.com/v2/rest/overview
 const PARA_API_KEY = process.env.PARA_API_KEY;
-const PARA_BASE_URL = 'https://api.getpara.com/v2';
-const PARA_ENV = 'BETA';
+const PARA_BASE_URL = 'https://api.beta.getpara.com/v1'; // ✓ FIXED: v1, not v2 + beta endpoint
 
 // Sepolia RPC - use full Alchemy URL
 const RPC_URL = `https://eth-sepolia.g.alchemy.com/v2/${process.env.INFURA_KEY}`;
@@ -49,32 +49,38 @@ async function paraRequest(method, endpoint, body = null) {
   const data = await res.json();
 
   if (!res.ok) {
-    throw new Error(`Para API error: ${data.message || res.statusText}`);
+    throw new Error(`Para API error (${res.status}): ${data.message || res.statusText}`);
   }
   return data;
 }
 
-async function createParaWallet(userId) {
-  // Create EVM wallet
+async function createParaWallet(userId, email) {
+  // ✓ FIXED: Use correct Para API payload
+  // POST /v1/wallets with type, userIdentifier, userIdentifierType
+  // Ref: https://docs.getpara.com/v2/rest/guides/wallets
   const res = await paraRequest('POST', '/wallets', {
-    chain: 'evm',
-    environment: PARA_ENV,
+    type: 'EVM',                    // ✓ Correct field (was: chain)
+    userIdentifier: email,          // ✓ Required: user's email
+    userIdentifierType: 'EMAIL',    // ✓ Required: identifier type
+    // scheme defaults to DKLS for EVM (optional)
   });
 
-  const walletId = res.id;
+  const walletId = res.wallet.id;  // ✓ Response structure: res.wallet.id, not res.id
 
-  // Poll until ready
-  let status = 'creating';
+  // Poll until ready (max 30 seconds)
+  let wallet = res.wallet;
   let attempts = 0;
-  while (status !== 'ready' && attempts < 30) {
+  const MAX_ATTEMPTS = 60;
+
+  while (wallet.status !== 'ready' && attempts < MAX_ATTEMPTS) {
     await new Promise((r) => setTimeout(r, 500));
-    const wallet = await paraRequest('GET', `/wallets/${walletId}`);
-    status = wallet.status;
+    const getRes = await paraRequest('GET', `/wallets/${walletId}`);
+    wallet = getRes;  // ✓ GET response is wallet object directly
     attempts++;
   }
 
-  if (status !== 'ready') {
-    throw new Error('Wallet creation timeout');
+  if (wallet.status !== 'ready') {
+    throw new Error(`Wallet creation timeout (status: ${wallet.status})`);
   }
 
   // Store mapping
@@ -84,7 +90,7 @@ async function createParaWallet(userId) {
 
 async function getWalletAddress(walletId) {
   const wallet = await paraRequest('GET', `/wallets/${walletId}`);
-  return wallet.address;
+  return wallet.address;  // ✓ Response has address when ready
 }
 
 async function getWalletBalance(address) {
@@ -114,7 +120,7 @@ app.get('/api', (req, res) => {
   res.json({
     status: '✅ OK',
     service: 'Fintech Backend (Supabase + Para)',
-    version: '1.0.0',
+    version: '1.0.1',
     endpoints: {
       'POST /signup': 'Create user + auto-create wallet',
       'POST /login': 'Authenticate user, return JWT',
@@ -123,6 +129,7 @@ app.get('/api', (req, res) => {
     },
     ui: 'Open browser to http://localhost:3000 to use the frontend',
     docs: 'https://github.com/prajalsharma/fintech-backend-para',
+    para_api_docs: 'https://docs.getpara.com/v2/rest/overview',
     timestamp: new Date().toISOString(),
   });
 });
@@ -145,8 +152,8 @@ app.post('/signup', async (req, res) => {
 
     const userId = data.user.id;
 
-    // Create Para wallet
-    const walletId = await createParaWallet(userId);
+    // ✓ FIXED: Pass email to createParaWallet (needed for userIdentifier)
+    const walletId = await createParaWallet(userId, email);
     const address = await getWalletAddress(walletId);
 
     res.json({
@@ -155,7 +162,7 @@ app.post('/signup', async (req, res) => {
       wallet_address: address,
     });
   } catch (err) {
-    console.error(err);
+    console.error('Signup error:', err.message);
     res.status(500).json({ error: err.message });
   }
 });
@@ -182,7 +189,7 @@ app.post('/login', async (req, res) => {
       access_token: data.session.access_token,
     });
   } catch (err) {
-    console.error(err);
+    console.error('Login error:', err.message);
     res.status(500).json({ error: err.message });
   }
 });
@@ -212,7 +219,7 @@ app.get('/wallet', async (req, res) => {
       balance_eth: balance,
     });
   } catch (err) {
-    console.error(err);
+    console.error('Wallet fetch error:', err.message);
     res.status(500).json({ error: err.message });
   }
 });
@@ -240,6 +247,8 @@ app.post('/send', async (req, res) => {
     }
 
     // Build Sepolia transaction
+    // ✓ FIXED: Follow Para's documented pattern
+    // Ref: https://docs.getpara.com/v2/rest/guides/signing
     const provider = new ethers.JsonRpcProvider(RPC_URL);
     const fromAddress = await getWalletAddress(walletId);
     const nonce = await provider.getTransactionCount(fromAddress);
@@ -253,22 +262,23 @@ app.post('/send', async (req, res) => {
       gasLimit: 21000,
       maxFeePerGas: feeData.maxFeePerGas,
       maxPriorityFeePerGas: feeData.maxPriorityFeePerGas,
+      data: '0x',  // ✓ Added data field
     };
 
-    // Hash unsigned transaction
+    // ✓ FIXED: Get digest correctly for signing
+    // Use keccak256(unsignedSerialized) as Per docs
     const unsignedTx = ethers.Transaction.from(tx);
-    const txHash = unsignedTx.unsignedHash;
+    const unsignedSerialized = unsignedTx.unsignedSerialized;  // ✓ Correct: unsignedSerialized
+    const digest = ethers.keccak256(unsignedSerialized);  // ✓ Correct: Hash the serialized TX
 
-    // Sign with Para
+    // ✓ FIXED: Use 'data' field, not 'message'
     const signRes = await paraRequest('POST', `/wallets/${walletId}/sign-raw`, {
-      message: txHash,
+      data: digest,  // ✓ Correct field name (was: message)
     });
 
-    const signature = signRes.signature;
-
-    // Serialize signed transaction
-    unsignedTx.signature = ethers.Signature.from(signature);
-    const serialized = unsignedTx.serialized;
+    // ✓ FIXED: Extract signature correctly and serialize
+    const signature = ethers.Signature.from(signRes.signature);
+    const serialized = ethers.serializeTransaction(unsignedTx, signature);
 
     // Broadcast
     const txRes = await provider.broadcastTransaction(serialized);
@@ -280,7 +290,7 @@ app.post('/send', async (req, res) => {
       amount,
     });
   } catch (err) {
-    console.error(err);
+    console.error('Send error:', err.message);
     res.status(500).json({ error: err.message });
   }
 });
@@ -301,5 +311,6 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`\n✅ Server running on http://localhost:${PORT}`);
   console.log(`🌐 UI available at http://localhost:${PORT}`);
-  console.log(`📖 API Documentation at http://localhost:${PORT}/api\n`);
+  console.log(`📖 API Documentation at http://localhost:${PORT}/api`);
+  console.log(`📚 Para API Docs: https://docs.getpara.com/v2/rest/overview\n`);
 });
