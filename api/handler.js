@@ -5,11 +5,24 @@ import { ethers } from 'ethers';
 const app = express();
 app.use(express.json());
 
-// Supabase client (server-side only)
-const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_KEY
-);
+// Lazy-load Supabase client only when needed
+let supabase = null;
+
+function getSupabaseClient() {
+  if (!supabase) {
+    const url = process.env.SUPABASE_URL;
+    const key = process.env.SUPABASE_SERVICE_KEY;
+
+    if (!url || !key) {
+      throw new Error(
+        `Missing Supabase credentials. Set SUPABASE_URL and SUPABASE_SERVICE_KEY in Vercel environment variables.`
+      );
+    }
+
+    supabase = createClient(url, key);
+  }
+  return supabase;
+}
 
 // Para REST API configuration
 const PARA_API_KEY = process.env.PARA_API_KEY;
@@ -25,6 +38,10 @@ const walletMap = {};
 // ============= HELPERS =============
 
 async function paraRequest(method, endpoint, body = null) {
+  if (!PARA_API_KEY) {
+    throw new Error('PARA_API_KEY not set in environment');
+  }
+
   const url = `${PARA_BASE_URL}${endpoint}`;
   const headers = {
     'X-API-Key': PARA_API_KEY,
@@ -86,13 +103,15 @@ async function getWalletBalance(address) {
 // Verify Supabase JWT token
 async function verifyToken(token) {
   try {
+    const client = getSupabaseClient();
     const {
       data: { user },
       error,
-    } = await supabase.auth.getUser(token);
+    } = await client.auth.getUser(token);
     if (error || !user) return null;
     return user.id;
   } catch (err) {
+    console.error('Token verification error:', err.message);
     return null;
   }
 }
@@ -122,7 +141,8 @@ app.post('/api/signup', async (req, res) => {
       return res.status(400).json({ error: 'Email and password required' });
     }
 
-    const { data, error } = await supabase.auth.admin.createUser({
+    const client = getSupabaseClient();
+    const { data, error } = await client.auth.admin.createUser({
       email,
       password,
       email_confirm: true,
@@ -165,7 +185,8 @@ app.post('/api/login', async (req, res) => {
       return res.status(400).json({ error: 'Email and password required' });
     }
 
-    const { data, error } = await supabase.auth.signInWithPassword({
+    const client = getSupabaseClient();
+    const { data, error } = await client.auth.signInWithPassword({
       email,
       password,
     });
